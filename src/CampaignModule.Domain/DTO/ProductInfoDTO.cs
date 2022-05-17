@@ -4,6 +4,7 @@ public class ProductInfoDTO
 {
     public decimal Price { get; set; }
     public int Stock { get; set; }
+    public string CampaignName { get; set; } = string.Empty;
     
     public override string ToString()
     {

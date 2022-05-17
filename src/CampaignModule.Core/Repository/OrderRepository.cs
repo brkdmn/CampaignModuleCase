@@ -12,6 +12,19 @@ public class OrderRepository : IOrderRepository
         _postgresSqlConfiguration = postgresSqlConfiguration;
     }
 
+    public async Task<int> CreateOrder(OrderEntity orderEntity)
+    {
+        const string sql = @"INSERT INTO public.order
+                                (id,product_code,campaign_name,quantity,sale_price,is_active,is_deleted,created_date,updated_date)
+                                VALUES (@Id,@ProductCode,@CampaignName,@Quantity,@SalePrice,@IsActive,@IsDeleted,@CreatedDate,@UpdatedDate);";
+        
+        using var dbConnection = _postgresSqlConfiguration.GetConnection();
+        dbConnection.Open();
+        
+        return await dbConnection
+            .ExecuteAsync(sql, orderEntity);
+    }
+    
     public async Task<TotalQuantity?> GetSalesCountByCampaignNameAndProductCode(string? campaignName, string? productCode)
     {
         const string sql = @"SELECT  SUM(quantity) AS total FROM public.order WHERE 

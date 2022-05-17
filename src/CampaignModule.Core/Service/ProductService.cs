@@ -45,7 +45,7 @@ public class ProductService : IProductService
         response.IsSuccess = true;
         response.Result = productDTO;
         response.Message = productDTO.ToString();
-        response.StatusCode = (int)HttpStatusCode.OK;
+        response.StatusCode = (int)HttpStatusCode.Created;
         return response;
     }
 
@@ -56,8 +56,10 @@ public class ProductService : IProductService
 
         if (productEntity != null)
         {
+            var campaign = await _campaignRepository.GetCampaignByProductCode(productEntity.ProductCode);
             var productInfoDTO = new ProductInfoDTO
             {
+                CampaignName = campaign?.Name ?? string.Empty,
                 Price = await CalculateProductPrice(productEntity),
                 Stock = await CalculateProductStock(productEntity.Stock, productEntity.ProductCode)
             };
