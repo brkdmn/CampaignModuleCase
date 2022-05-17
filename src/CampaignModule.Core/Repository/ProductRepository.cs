@@ -27,7 +27,9 @@ public class ProductRepository : IProductRepository
 
     public async Task<ProductEntity?> GetProduct(string productCode)
     {
-        const string sql = @"SELECT * FROM public.product WHERE is_active=true AND is_deleted=false;";
+        const string sql = @"SELECT * FROM public.product 
+         WHERE is_active=true 
+           AND is_deleted=false;";
         
         using var dbConnection = _postgresSqlConfiguration.GetConnection();
         dbConnection.Open();

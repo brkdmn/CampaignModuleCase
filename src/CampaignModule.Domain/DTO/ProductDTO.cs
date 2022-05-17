@@ -12,4 +12,9 @@ public class ProductDTO
         Price = price;
         Stock = stock;
     }
+
+    public override string ToString()
+    {
+        return $"Product created; code {ProductCode}, price {Price}, stock {Stock}";
+    }
 }

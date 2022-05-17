@@ -16,10 +16,17 @@ public class ProductController : Controller
     {
         _productService = productService;
     }
+    [HttpGet("/")]
+    public async Task<IActionResult> GetProduct(string productCode)
+    {
+        var result = await _productService.GetProduct(productCode);
+        return StatusCode(result.StatusCode, result);
+    }
+    
     [HttpPost("create")]
     public async Task<IActionResult> CreateProduct(ProductCreateRequest productCreateRequest)
     {
         var result = await _productService.CreateProduct(productCreateRequest.Adapt<ProductDTO>());
-        return StatusCode((int)HttpStatusCode.Created,result);
+        return StatusCode(result.StatusCode, result);
     }
 }

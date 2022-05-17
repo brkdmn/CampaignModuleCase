@@ -1,7 +1,10 @@
+using CampaignModule.Domain.Entity;
+
 namespace CampaignModule.Core.Repository;
 
 public interface IOrderRepository
 {
-    Task<int> GetSalesCountByCampaignNameAndProductCode(string? campaignName, string? productCode);
-    Task<decimal> GetTotalPriceByCampaignNameAndProductCode(string? campaignName, string? productCode);
+    Task<TotalQuantity?> GetSalesCountByCampaignNameAndProductCode(string? campaignName, string? productCode);
+    Task<TotalPrice?> GetTotalPriceByCampaignNameAndProductCode(string? campaignName, string? productCode);
+    Task<TotalQuantity?> GetSalesCountByProductCode(string? productCode);
 }

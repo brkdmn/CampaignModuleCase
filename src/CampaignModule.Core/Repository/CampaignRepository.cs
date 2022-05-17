@@ -14,7 +14,10 @@ public class CampaignRepository : ICampaignRepository
     
     public async Task<CampaignEntity?> GetCampaignByProductCode(string productCode)
     {
-        const string sql = @"SELECT * FROM public.campaign WHERE product_code=@productCode is_active=true AND is_deleted=false;";
+        const string sql = @"SELECT * FROM public.campaign 
+         WHERE product_code=@productCode 
+           AND is_active=true 
+           AND is_deleted=false;";
         
         using var dbConnection = _postgresSqlConfiguration.GetConnection();
         dbConnection.Open();
@@ -28,7 +31,10 @@ public class CampaignRepository : ICampaignRepository
     
     public async Task<CampaignEntity?> GetCampaignByCampaignName(string campaignName)
     {
-        const string sql = @"SELECT * FROM public.campaign WHERE name=@campaignName is_active=true AND is_deleted=false;";
+        const string sql = @"SELECT * FROM public.campaign 
+         WHERE name=@campaignName 
+           AND is_active=true 
+           AND is_deleted=false;";
         
         using var dbConnection = _postgresSqlConfiguration.GetConnection();
         dbConnection.Open();

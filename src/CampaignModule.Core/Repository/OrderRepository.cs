@@ -12,7 +12,7 @@ public class OrderRepository : IOrderRepository
         _postgresSqlConfiguration = postgresSqlConfiguration;
     }
 
-    public async Task<int> GetSalesCountByCampaignNameAndProductCode(string? campaignName, string? productCode)
+    public async Task<TotalQuantity?> GetSalesCountByCampaignNameAndProductCode(string? campaignName, string? productCode)
     {
         const string sql = @"SELECT  SUM(quantity) AS total FROM public.order WHERE 
                         product_code=@productCode AND 
@@ -23,15 +23,32 @@ public class OrderRepository : IOrderRepository
         using var dbConnection = _postgresSqlConfiguration.GetConnection();
         dbConnection.Open();
         
-        var result = await dbConnection.QueryAsync<dynamic>(sql, new
+        var result = await dbConnection.QueryAsync<TotalQuantity>(sql, new
         {
             productCode,
             campaignName
         });
-        return (int)result.FirstOrDefault()["total"];
+        return result.FirstOrDefault();
     }
     
-    public async Task<decimal> GetTotalPriceByCampaignNameAndProductCode(string? campaignName, string? productCode)
+    public async Task<TotalQuantity?> GetSalesCountByProductCode(string? productCode)
+    {
+        const string sql = @"SELECT  SUM(quantity) AS total FROM public.order WHERE 
+                        product_code=@productCode AND
+                        is_active=true AND 
+                        is_deleted=false;";
+        
+        using var dbConnection = _postgresSqlConfiguration.GetConnection();
+        dbConnection.Open();
+        
+        var result = await dbConnection.QueryAsync<TotalQuantity>(sql, new
+        {
+            productCode
+        });
+        return result.FirstOrDefault();
+    }
+    
+    public async Task<TotalPrice?> GetTotalPriceByCampaignNameAndProductCode(string? campaignName, string? productCode)
     {
         const string sql = @"SELECT  SUM(quantity*quantity) AS total FROM public.order WHERE 
                         product_code=@productCode AND 
@@ -42,11 +59,11 @@ public class OrderRepository : IOrderRepository
         using var dbConnection = _postgresSqlConfiguration.GetConnection();
         dbConnection.Open();
         
-        var result = await dbConnection.QueryAsync<dynamic>(sql, new
+        var result = await dbConnection.QueryAsync<TotalPrice>(sql, new
         {
             productCode,
             campaignName
         });
-        return (decimal)result.FirstOrDefault()["total"];
+        return result.FirstOrDefault();
     }
 }
