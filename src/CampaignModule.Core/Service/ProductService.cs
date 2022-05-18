@@ -1,22 +1,20 @@
 using System.Net;
-using CampaignModule.Core.Helper;
 using CampaignModule.Core.Repository;
 using CampaignModule.Domain.DTO;
 using CampaignModule.Domain.Entity;
 using CampaignModule.Domain.Response;
-using Mapster;
 
 namespace CampaignModule.Core.Service;
 
 public class ProductService : IProductService
 {
-    private readonly IProductRepository _productRepository;
     private readonly ICampaignRepository _campaignRepository;
-    private readonly IOrderRepository _orderRepository;
     private readonly ICampaignService _campaignService;
-    
+    private readonly IOrderRepository _orderRepository;
+    private readonly IProductRepository _productRepository;
+
     public ProductService(
-        IProductRepository productRepository, 
+        IProductRepository productRepository,
         ICampaignRepository campaignRepository,
         IOrderRepository orderRepository,
         ICampaignService campaignService)
@@ -26,6 +24,7 @@ public class ProductService : IProductService
         _orderRepository = orderRepository;
         _campaignService = campaignService;
     }
+
     public async Task<BaseResponse<ProductDTO>> CreateProduct(ProductDTO productDTO)
     {
         var response = new BaseResponse<ProductDTO>();
@@ -40,10 +39,7 @@ public class ProductService : IProductService
 
         product = ProductEntity.Build(productDTO);
         var createResult = await _productRepository.CreateProduct(product);
-        if (createResult != 1)
-        {
-            throw new Exception("There is a technical problem.");
-        }
+        if (createResult != 1) throw new Exception("There is a technical problem.");
 
         response.IsSuccess = true;
         response.Result = productDTO;
@@ -66,7 +62,7 @@ public class ProductService : IProductService
                 Price = await CalculateProductPrice(productEntity),
                 Stock = await CalculateProductStock(productEntity.Stock, productEntity.ProductCode)
             };
-            
+
             response.IsSuccess = true;
             response.Result = productInfoDTO;
             response.Message = productInfoDTO.ToString();
@@ -83,9 +79,9 @@ public class ProductService : IProductService
     {
         if (!await _campaignService.CampaignAvailable(productEntity.ProductCode)) return productEntity.Price;
         var campaign = await _campaignRepository.GetCampaignByProductCode(productEntity.ProductCode);
-        return productEntity.Price 
-               - (campaign.PriceManipulationLimit / productEntity.Price * 100) / (campaign.Duration - campaign.CurrentDuration);
-
+        return productEntity.Price
+               - campaign.PriceManipulationLimit / productEntity.Price * 100 /
+               (campaign.Duration - campaign.CurrentDuration);
     }
 
     private async Task<int> CalculateProductStock(int totalStock, string productCode)
@@ -93,6 +89,4 @@ public class ProductService : IProductService
         var saleCount = await _orderRepository.GetSalesCountByProductCode(productCode);
         return totalStock - (saleCount?.Total ?? 0);
     }
-
-    
 }

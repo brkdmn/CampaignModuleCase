@@ -39,7 +39,7 @@ public class OrderServiceTest
             Stock = 1000,
             CampaignName = "C1"
         };
-        
+
         var tcsProductInfo = new TaskCompletionSource<BaseResponse<ProductInfoDTO>>();
         tcsProductInfo.SetResult(new BaseResponse<ProductInfoDTO>
         {
@@ -50,15 +50,15 @@ public class OrderServiceTest
         });
         _mockProductService.Setup(service => service.GetProduct(productCode))
             .Returns(tcsProductInfo.Task);
-        
+
         var tcsCreateOrder = new TaskCompletionSource<int>();
         tcsCreateOrder.SetResult(1);
         _mockOrderRepository.Setup(repository => repository.CreateOrder(It.IsAny<OrderEntity>()))
             .Returns(tcsCreateOrder.Task);
-        
+
         //act
         var response = await _service.CreateOrder(orderDTO);
-        
+
         //assert
         Assert.IsType<BaseResponse<OrderDTO>>(response);
         Assert.Equal((int)HttpStatusCode.Created, response.StatusCode);
@@ -68,7 +68,7 @@ public class OrderServiceTest
         Assert.Equal(3, response.Result!.Quantity);
         Assert.Equal(orderDTO.ToString(), response.Message);
     }
-    
+
     [Fact]
     public async Task CreateOrder_InvalidProductCode_ReturnsNullAndStatusNotFound()
     {
@@ -90,12 +90,12 @@ public class OrderServiceTest
         });
         _mockProductService.Setup(service => service.GetProduct(productCode))
             .Returns(tcsProductInfo.Task!);
-        
+
         _mockOrderRepository.VerifyNoOtherCalls();
-        
+
         //act
         var response = await _service.CreateOrder(orderDTO);
-        
+
         //assert
         Assert.IsType<BaseResponse<OrderDTO>>(response);
         Assert.Equal((int)HttpStatusCode.NotFound, response.StatusCode);
@@ -103,8 +103,8 @@ public class OrderServiceTest
         Assert.Null(response.Result);
         Assert.Equal("Product is not found.", response.Message);
     }
-    
-    
+
+
     [Fact]
     public async Task CreateOrder_ProductStockLowerThan_ReturnsNullAndStatusNotFound()
     {
@@ -122,7 +122,7 @@ public class OrderServiceTest
             Stock = 5,
             CampaignName = "C1"
         };
-        
+
         var tcsProductInfo = new TaskCompletionSource<BaseResponse<ProductInfoDTO>>();
         tcsProductInfo.SetResult(new BaseResponse<ProductInfoDTO>
         {
@@ -133,12 +133,12 @@ public class OrderServiceTest
         });
         _mockProductService.Setup(service => service.GetProduct(productCode))
             .Returns(tcsProductInfo.Task);
-        
+
         _mockOrderRepository.VerifyNoOtherCalls();
-        
+
         //act
         var response = await _service.CreateOrder(orderDTO);
-        
+
         //assert
         Assert.IsType<BaseResponse<OrderDTO>>(response);
         Assert.Equal((int)HttpStatusCode.BadRequest, response.StatusCode);
@@ -146,7 +146,7 @@ public class OrderServiceTest
         Assert.Null(response.Result);
         Assert.Equal("Product stock is not enough.", response.Message);
     }
-    
+
     [Fact]
     public async Task CreateOrder_CreateOrderIsNotSuccess_ThrowException()
     {
@@ -164,7 +164,7 @@ public class OrderServiceTest
             Stock = 1000,
             CampaignName = "C1"
         };
-        
+
         var tcsProductInfo = new TaskCompletionSource<BaseResponse<ProductInfoDTO>>();
         tcsProductInfo.SetResult(new BaseResponse<ProductInfoDTO>
         {
@@ -175,14 +175,18 @@ public class OrderServiceTest
         });
         _mockProductService.Setup(service => service.GetProduct(productCode))
             .Returns(tcsProductInfo.Task);
-        
+
         var tcsCreateOrder = new TaskCompletionSource<int>();
         tcsCreateOrder.SetResult(0);
         _mockOrderRepository.Setup(repository => repository.CreateOrder(It.IsAny<OrderEntity>()))
             .Returns(tcsCreateOrder.Task);
-        
+
         //act
-        async Task Act() => await _service.CreateOrder(orderDTO);
+        async Task Act()
+        {
+            await _service.CreateOrder(orderDTO);
+        }
+
 
         //assert
         var exception = await Assert.ThrowsAsync<Exception>((Func<Task>)Act);
