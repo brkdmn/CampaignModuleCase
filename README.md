@@ -34,4 +34,4 @@ ASPNETCORE_ENVIRONMENT
 Geçerli env değerleri:
 - Development
 - Staging
-- Test
+- Prod
