@@ -8,16 +8,13 @@ namespace CampaignModule.Core.Service;
 
 public class OrderService : IOrderService
 {
-    private readonly IProductRepository _productRepository;
     private readonly IOrderRepository _orderRepository;
     private readonly IProductService _productService;
     
     public OrderService(
-        IProductRepository productRepository, 
         IOrderRepository orderRepository,
         IProductService productService)
     {
-        _productRepository = productRepository;
         _orderRepository = orderRepository;
         _productService = productService;
     }
@@ -35,7 +32,7 @@ public class OrderService : IOrderService
         if (product.Stock < orderDto.Quantity)
         {
             response.Message = "Product stock is not enough.";
-            response.StatusCode = (int)HttpStatusCode.NotFound;
+            response.StatusCode = (int)HttpStatusCode.BadRequest;
             return response;
         }
 
