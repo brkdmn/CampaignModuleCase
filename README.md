@@ -19,6 +19,7 @@ Uygulamalar aşağıdaki adreslerden erişilebilir olacaktır.
 - CampaignModule.Api Swagger -> localhost:5001/swagger
 - postgreSql -> localhost:5432
 
+## Konfigürasyon
 
 Database ConnectionString:
 ```sh
