@@ -13,15 +13,18 @@ public class ProductService : IProductService
     private readonly IProductRepository _productRepository;
     private readonly ICampaignRepository _campaignRepository;
     private readonly IOrderRepository _orderRepository;
+    private readonly ICampaignService _campaignService;
     
     public ProductService(
         IProductRepository productRepository, 
         ICampaignRepository campaignRepository,
-        IOrderRepository orderRepository)
+        IOrderRepository orderRepository,
+        ICampaignService campaignService)
     {
         _productRepository = productRepository;
         _campaignRepository = campaignRepository;
         _orderRepository = orderRepository;
+        _campaignService = campaignService;
     }
     public async Task<BaseResponse<ProductDTO>> CreateProduct(ProductDTO productDTO)
     {
@@ -78,17 +81,11 @@ public class ProductService : IProductService
 
     private async Task<decimal> CalculateProductPrice(ProductEntity productEntity)
     {
+        if (!await _campaignService.CampaignAvailable(productEntity.ProductCode)) return productEntity.Price;
         var campaign = await _campaignRepository.GetCampaignByProductCode(productEntity.ProductCode);
-        if (campaign == null) return productEntity.Price;
-        
-        var saleCount =
-            await _orderRepository.GetSalesCountByCampaignNameAndProductCode(campaign.Name, productEntity.ProductCode);
-        if (CampaignAvailable(campaign, saleCount?.Total ?? 0))
-        {
-            return (campaign.PriceManipulationLimit / productEntity.Price * 100) / campaign.CurrentDuration;
-        }
+        return productEntity.Price 
+               - (campaign.PriceManipulationLimit / productEntity.Price * 100) / (campaign.Duration - campaign.CurrentDuration);
 
-        return productEntity.Price;
     }
 
     private async Task<int> CalculateProductStock(int totalStock, string productCode)
@@ -97,9 +94,5 @@ public class ProductService : IProductService
         return totalStock - (saleCount?.Total ?? 0);
     }
 
-    private bool CampaignAvailable(CampaignEntity campaignEntity, int totalSalesCount)
-    {
-        return campaignEntity.Duration > campaignEntity.CurrentDuration
-               && totalSalesCount < campaignEntity.TargetSalesCount;
-    }
+    
 }

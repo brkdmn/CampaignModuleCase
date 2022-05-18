@@ -16,7 +16,7 @@ public class ProductController : Controller
     {
         _productService = productService;
     }
-    [HttpGet("/")]
+    [HttpGet("info")]
     public async Task<IActionResult> GetProduct(string productCode)
     {
         var result = await _productService.GetProduct(productCode);

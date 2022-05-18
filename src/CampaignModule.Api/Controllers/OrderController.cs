@@ -7,6 +7,7 @@ using Microsoft.AspNetCore.Mvc;
 namespace CampaignModule.Api.Controllers;
 
 [Route("api/order")]
+[ApiController]
 public class OrderController : Controller
 {
     private readonly IOrderService _orderService; 
