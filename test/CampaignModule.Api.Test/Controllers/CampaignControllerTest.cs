@@ -26,7 +26,9 @@ public class CampaignControllerTest
     {
         //arrange
         const string campaignName = "C1";
-        var campaignDTO = new CampaignInfoDTO
+
+        var tcs = new TaskCompletionSource<CampaignInfoDTO>();
+        tcs.SetResult(new CampaignInfoDTO
         {
             AvarageItemPrice = 100,
             Name = campaignName,
@@ -34,14 +36,6 @@ public class CampaignControllerTest
             TargetSales = 10,
             TotalSales = 1,
             Turnover = 100
-        };
-        var tcs = new TaskCompletionSource<BaseResponse<CampaignInfoDTO>>();
-        tcs.SetResult(new BaseResponse<CampaignInfoDTO>
-        {
-            Result = campaignDTO,
-            IsSuccess = true,
-            Message = campaignDTO.ToString(),
-            StatusCode = (int)HttpStatusCode.OK
         });
 
         _mockService.Setup(service => service.GetCampaign(campaignName))
@@ -80,7 +74,7 @@ public class CampaignControllerTest
             TargetSalesCount = 10
         };
 
-        var campaignDTO = new CampaignDTO
+        var campaignDto = new CampaignDTO
         {
             Name = campaignName,
             ProductCode = productCode,
@@ -89,14 +83,8 @@ public class CampaignControllerTest
             TargetSalesCount = 10
         };
 
-        var tcs = new TaskCompletionSource<BaseResponse<CampaignDTO>>();
-        tcs.SetResult(new BaseResponse<CampaignDTO>
-        {
-            Result = campaignDTO,
-            IsSuccess = true,
-            Message = campaignDTO.ToString(),
-            StatusCode = (int)HttpStatusCode.Created
-        });
+        var tcs = new TaskCompletionSource<CampaignDTO>();
+        tcs.SetResult(campaignDto);
 
         _mockService.Setup(service => service.CreateCampaign(It.IsAny<CampaignDTO>()))
             .Returns(tcs.Task);
@@ -116,7 +104,7 @@ public class CampaignControllerTest
         Assert.Equal(5, response.Result!.Duration);
         Assert.Equal(20, response.Result!.PriceManipulationLimit);
         Assert.Equal(10, response.Result!.TargetSalesCount);
-        Assert.Equal(campaignDTO.ToString(), response.Message);
+        Assert.Equal(campaignDto.ToString(), response.Message);
     }
 
     [Fact]
@@ -126,14 +114,8 @@ public class CampaignControllerTest
         const int time = 1;
         const string name = "C1";
 
-        var tcs = new TaskCompletionSource<BaseResponse<string>>();
-        tcs.SetResult(new BaseResponse<string>
-        {
-            Result = "02:00",
-            IsSuccess = true,
-            Message = "message",
-            StatusCode = (int)HttpStatusCode.OK
-        });
+        var tcs = new TaskCompletionSource<string>();
+        tcs.SetResult("02:00");
 
         _mockService.Setup(service => service.IncreaseTime(time, name))
             .Returns(tcs.Task);

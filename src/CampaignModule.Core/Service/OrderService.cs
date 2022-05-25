@@ -1,9 +1,9 @@
 using System.Net;
+using CampaignModule.Core.Helper;
 using CampaignModule.Core.Interfaces.Infrastructer;
 using CampaignModule.Core.Interfaces.Service;
 using CampaignModule.Domain.DTO;
 using CampaignModule.Domain.Entity;
-using CampaignModule.Domain.Response;
 
 namespace CampaignModule.Core.Service;
 
@@ -19,32 +19,21 @@ public class OrderService : IOrderService
         _unitOfWork = unitOfWork;
     }
 
-    public async Task<BaseResponse<OrderDTO>> CreateOrder(OrderDTO orderDto)
+    public async Task<OrderDTO> CreateOrder(OrderDTO orderDto)
     {
-        var response = new BaseResponse<OrderDTO>();
-        var product = (await _productService.GetProduct(orderDto.ProductCode)).Result;
+        var product = await _productService.GetProduct(orderDto.ProductCode);
         if (product == null)
-        {
-            response.Message = "Product is not found.";
-            response.StatusCode = (int)HttpStatusCode.NotFound;
-            return response;
-        }
+            throw new AppException("Product is not found.", HttpStatusCode.NotFound);
+
 
         if (product.Stock < orderDto.Quantity)
-        {
-            response.Message = "Product stock is not enough.";
-            response.StatusCode = (int)HttpStatusCode.BadRequest;
-            return response;
-        }
+            throw new AppException("Product stock is not enough.", HttpStatusCode.BadRequest);
 
         var orderEntity = Order.Build(orderDto, product.CampaignName, product.Price);
         var createResult = await _unitOfWork.Order.AddAsync(orderEntity);
-        if (createResult != 1) throw new Exception("There is a technical problem.");
+        if (createResult != 1)
+            throw new Exception("There is a technical problem.");
 
-        response.IsSuccess = true;
-        response.Result = orderDto;
-        response.Message = orderDto.ToString();
-        response.StatusCode = (int)HttpStatusCode.Created;
-        return response;
+        return orderDto;
     }
 }

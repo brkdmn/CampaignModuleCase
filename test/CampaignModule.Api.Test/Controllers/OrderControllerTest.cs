@@ -37,14 +37,8 @@ public class OrderControllerTest
             Quantity = 5
         };
 
-        var tcs = new TaskCompletionSource<BaseResponse<OrderDTO>>();
-        tcs.SetResult(new BaseResponse<OrderDTO>
-        {
-            Result = orderDto,
-            IsSuccess = true,
-            Message = orderDto.ToString(),
-            StatusCode = (int)HttpStatusCode.Created
-        });
+        var tcs = new TaskCompletionSource<OrderDTO>();
+        tcs.SetResult(orderDto);
 
         _mockService.Setup(service => service.CreateOrder(It.IsAny<OrderDTO>()))
             .Returns(tcs.Task);

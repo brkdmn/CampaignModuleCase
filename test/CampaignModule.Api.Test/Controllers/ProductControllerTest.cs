@@ -34,14 +34,8 @@ public class ProductControllerTest
 
         var productDto = new ProductDTO(productCode, 100, 1000);
 
-        var tcs = new TaskCompletionSource<BaseResponse<ProductDTO>>();
-        tcs.SetResult(new BaseResponse<ProductDTO>
-        {
-            Result = productDto,
-            IsSuccess = true,
-            Message = productDto.ToString(),
-            StatusCode = (int)HttpStatusCode.Created
-        });
+        var tcs = new TaskCompletionSource<ProductDTO>();
+        tcs.SetResult(productDto);
 
         _mockService.Setup(service => service.CreateProduct(It.IsAny<ProductDTO>()))
             .Returns(tcs.Task);
@@ -74,14 +68,8 @@ public class ProductControllerTest
             Stock = 1000,
             CampaignName = campaignName
         };
-        var tcs = new TaskCompletionSource<BaseResponse<ProductInfoDTO>>();
-        tcs.SetResult(new BaseResponse<ProductInfoDTO>
-        {
-            Result = productInfoDto,
-            IsSuccess = true,
-            Message = productInfoDto.ToString(),
-            StatusCode = (int)HttpStatusCode.OK
-        });
+        var tcs = new TaskCompletionSource<ProductInfoDTO>();
+        tcs.SetResult(productInfoDto);
 
         _mockService.Setup(service => service.GetProduct(productCode))
             .Returns(tcs.Task);

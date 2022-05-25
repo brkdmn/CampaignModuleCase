@@ -1,4 +1,3 @@
-using System.Net;
 using CampaignModule.Core.Interfaces.Infrastructer;
 using CampaignModule.Core.Interfaces.Service;
 using CampaignModule.Core.Service;
@@ -40,14 +39,8 @@ public class OrderServiceTest
             CampaignName = "C1"
         };
 
-        var tcsProductInfo = new TaskCompletionSource<BaseResponse<ProductInfoDTO>>();
-        tcsProductInfo.SetResult(new BaseResponse<ProductInfoDTO>
-        {
-            Result = productInfoDTO,
-            IsSuccess = true,
-            Message = productInfoDTO.ToString(),
-            StatusCode = (int)HttpStatusCode.OK
-        });
+        var tcsProductInfo = new TaskCompletionSource<ProductInfoDTO>();
+        tcsProductInfo.SetResult(productInfoDTO);
         _mockProductService.Setup(service => service.GetProduct(productCode))
             .Returns(tcsProductInfo.Task);
 
@@ -61,12 +54,9 @@ public class OrderServiceTest
 
         //assert
         Assert.IsType<BaseResponse<OrderDTO>>(response);
-        Assert.Equal((int)HttpStatusCode.Created, response.StatusCode);
-        Assert.True(response.IsSuccess);
-        Assert.NotNull(response.Result);
-        Assert.Equal(productCode, response.Result!.ProductCode);
-        Assert.Equal(3, response.Result!.Quantity);
-        Assert.Equal(orderDTO.ToString(), response.Message);
+        Assert.NotNull(response);
+        Assert.Equal(productCode, response.ProductCode);
+        Assert.Equal(3, response.Quantity);
     }
 
     [Fact]
@@ -74,34 +64,25 @@ public class OrderServiceTest
     {
         //arrange
         const string productCode = "P1";
-        var orderDTO = new OrderDTO
+        var orderDto = new OrderDTO
         {
             ProductCode = productCode,
             Quantity = 3
         };
 
-        var tcsProductInfo = new TaskCompletionSource<BaseResponse<ProductInfoDTO?>>();
-        tcsProductInfo.SetResult(new BaseResponse<ProductInfoDTO?>
-        {
-            Result = null,
-            IsSuccess = true,
-            Message = string.Empty,
-            StatusCode = (int)HttpStatusCode.OK
-        });
+        var tcsProductInfo = new TaskCompletionSource<ProductInfoDTO?>();
+        tcsProductInfo.SetResult(null);
         _mockProductService.Setup(service => service.GetProduct(productCode))
             .Returns(tcsProductInfo.Task!);
 
         _mockUnitOfWork.VerifyNoOtherCalls();
 
         //act
-        var response = await _service.CreateOrder(orderDTO);
+        var response = await _service.CreateOrder(orderDto);
 
         //assert
         Assert.IsType<BaseResponse<OrderDTO>>(response);
-        Assert.Equal((int)HttpStatusCode.NotFound, response.StatusCode);
-        Assert.False(response.IsSuccess);
-        Assert.Null(response.Result);
-        Assert.Equal("Product is not found.", response.Message);
+        Assert.Null(response);
     }
 
 
@@ -123,14 +104,8 @@ public class OrderServiceTest
             CampaignName = "C1"
         };
 
-        var tcsProductInfo = new TaskCompletionSource<BaseResponse<ProductInfoDTO>>();
-        tcsProductInfo.SetResult(new BaseResponse<ProductInfoDTO>
-        {
-            Result = productInfoDTO,
-            IsSuccess = true,
-            Message = productInfoDTO.ToString(),
-            StatusCode = (int)HttpStatusCode.OK
-        });
+        var tcsProductInfo = new TaskCompletionSource<ProductInfoDTO>();
+        tcsProductInfo.SetResult(productInfoDTO);
         _mockProductService.Setup(service => service.GetProduct(productCode))
             .Returns(tcsProductInfo.Task);
 
@@ -141,10 +116,7 @@ public class OrderServiceTest
 
         //assert
         Assert.IsType<BaseResponse<OrderDTO>>(response);
-        Assert.Equal((int)HttpStatusCode.BadRequest, response.StatusCode);
-        Assert.False(response.IsSuccess);
-        Assert.Null(response.Result);
-        Assert.Equal("Product stock is not enough.", response.Message);
+        Assert.Null(response);
     }
 
     [Fact]
@@ -165,14 +137,8 @@ public class OrderServiceTest
             CampaignName = "C1"
         };
 
-        var tcsProductInfo = new TaskCompletionSource<BaseResponse<ProductInfoDTO>>();
-        tcsProductInfo.SetResult(new BaseResponse<ProductInfoDTO>
-        {
-            Result = productInfoDTO,
-            IsSuccess = true,
-            Message = productInfoDTO.ToString(),
-            StatusCode = (int)HttpStatusCode.OK
-        });
+        var tcsProductInfo = new TaskCompletionSource<ProductInfoDTO>();
+        tcsProductInfo.SetResult(productInfoDTO);
         _mockProductService.Setup(service => service.GetProduct(productCode))
             .Returns(tcsProductInfo.Task);
 

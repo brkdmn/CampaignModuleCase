@@ -1,4 +1,3 @@
-using System.Net;
 using CampaignModule.Core.Interfaces.Infrastructer;
 using CampaignModule.Core.Interfaces.Service;
 using CampaignModule.Core.Service;
@@ -27,12 +26,12 @@ public class ProductServiceTest
     {
         //arrange
         const string productCode = "P1";
-        var productDTO = new ProductDTO(productCode, 100, 1000);
+        var productDto = new ProductDTO(productCode, 100, 1000);
 
-        var tcsProductDTO = new TaskCompletionSource<Product?>();
-        tcsProductDTO.SetResult(null);
+        var tcsProductDto = new TaskCompletionSource<Product?>();
+        tcsProductDto.SetResult(null);
         _mockUnitOfWork.Setup(unitOfWork => unitOfWork.Product.GetByCodeAsync(productCode))
-            .Returns(tcsProductDTO.Task);
+            .Returns(tcsProductDto.Task);
 
         var tcsCreateProduct = new TaskCompletionSource<int>();
         tcsCreateProduct.SetResult(1);
@@ -40,17 +39,13 @@ public class ProductServiceTest
             .Returns(tcsCreateProduct.Task);
 
         //act
-        var response = await _service.CreateProduct(productDTO);
+        var response = await _service.CreateProduct(productDto);
 
         //assert
         Assert.IsType<BaseResponse<ProductDTO>>(response);
-        Assert.Equal((int)HttpStatusCode.Created, response.StatusCode);
-        Assert.True(response.IsSuccess);
-        Assert.NotNull(response.Result);
-        Assert.Equal(productCode, response.Result!.ProductCode);
-        Assert.Equal(100, response.Result!.Price);
-        Assert.Equal(1000, response.Result!.Stock);
-        Assert.Equal(productDTO.ToString(), response.Message);
+        Assert.Equal(productCode, response.ProductCode);
+        Assert.Equal(100, response.Price);
+        Assert.Equal(1000, response.Stock);
     }
 
     [Fact]
@@ -58,24 +53,20 @@ public class ProductServiceTest
     {
         //arrange
         const string productCode = "P1";
-        var productDTO = new ProductDTO(productCode, 100, 1000);
+        var productDto = new ProductDTO(productCode, 100, 1000);
 
-        var tcsProductDTO = new TaskCompletionSource<Product?>();
-        tcsProductDTO.SetResult(new Product());
+        var tcsProductDto = new TaskCompletionSource<Product?>();
+        tcsProductDto.SetResult(new Product());
         _mockUnitOfWork.Setup(unitOfWork => unitOfWork.Product.GetByCodeAsync(productCode))
-            .Returns(tcsProductDTO.Task);
+            .Returns(tcsProductDto.Task);
 
         _mockUnitOfWork.Verify(unitOfWork => unitOfWork.Product.AddAsync(It.IsAny<Product>()), Times.Never);
 
         //act
-        var response = await _service.CreateProduct(productDTO);
+        var response = await _service.CreateProduct(productDto);
 
         //assert
-        Assert.IsType<BaseResponse<ProductDTO>>(response);
-        Assert.Equal((int)HttpStatusCode.BadRequest, response.StatusCode);
-        Assert.False(response.IsSuccess);
-        Assert.Null(response.Result);
-        Assert.Equal("Product is already exist.", response.Message);
+        Assert.Null(response);
     }
 
     [Fact]
@@ -83,12 +74,12 @@ public class ProductServiceTest
     {
         //arrange
         const string productCode = "P1";
-        var productDTO = new ProductDTO(productCode, 100, 1000);
+        var productDto = new ProductDTO(productCode, 100, 1000);
 
-        var tcsProductDTO = new TaskCompletionSource<Product?>();
-        tcsProductDTO.SetResult(null);
+        var tcsProductDto = new TaskCompletionSource<Product?>();
+        tcsProductDto.SetResult(null);
         _mockUnitOfWork.Setup(unitOfWork => unitOfWork.Product.GetByCodeAsync(productCode))
-            .Returns(tcsProductDTO.Task);
+            .Returns(tcsProductDto.Task);
 
         var tcsCreateProduct = new TaskCompletionSource<int>();
         tcsCreateProduct.SetResult(0);
@@ -98,7 +89,7 @@ public class ProductServiceTest
         //act
         async Task Act()
         {
-            await _service.CreateProduct(productDTO);
+            await _service.CreateProduct(productDto);
         }
 
         //assert
@@ -111,7 +102,7 @@ public class ProductServiceTest
     {
         //arrange
         const string productCode = "P1";
-        var productInfoDTO = new ProductInfoDTO
+        var productInfoDto = new ProductInfoDTO
         {
             CampaignName = "C1",
             Price = 100,
@@ -155,13 +146,9 @@ public class ProductServiceTest
 
         //assert
         Assert.IsType<BaseResponse<ProductInfoDTO>>(response);
-        Assert.Equal((int)HttpStatusCode.OK, response.StatusCode);
-        Assert.True(response.IsSuccess);
-        Assert.NotNull(response.Result);
-        Assert.Equal(productInfoDTO.ToString(), response.Message);
-        Assert.Equal(productInfoDTO.CampaignName, response.Result?.CampaignName);
-        Assert.Equal(productInfoDTO.Price, response.Result?.Price);
-        Assert.Equal(productInfoDTO.Stock, response.Result?.Stock);
+        Assert.Equal(productInfoDto.CampaignName, response.CampaignName);
+        Assert.Equal(productInfoDto.Price, response.Price);
+        Assert.Equal(productInfoDto.Stock, response.Stock);
     }
 
     [Fact]
@@ -169,7 +156,7 @@ public class ProductServiceTest
     {
         //arrange
         const string productCode = "P1";
-        var productInfoDTO = new ProductInfoDTO
+        var productInfoDto = new ProductInfoDTO
         {
             CampaignName = "C1",
             Price = 95.0M,
@@ -216,13 +203,9 @@ public class ProductServiceTest
 
         //assert
         Assert.IsType<BaseResponse<ProductInfoDTO>>(response);
-        Assert.Equal((int)HttpStatusCode.OK, response.StatusCode);
-        Assert.True(response.IsSuccess);
-        Assert.NotNull(response.Result);
-        Assert.Equal(productInfoDTO.ToString(), response.Message);
-        Assert.Equal(productInfoDTO.CampaignName, response.Result?.CampaignName);
-        Assert.Equal(productInfoDTO.Price, response.Result?.Price);
-        Assert.Equal(productInfoDTO.Stock, response.Result?.Stock);
+        Assert.Equal(productInfoDto.CampaignName, response.CampaignName);
+        Assert.Equal(productInfoDto.Price, response.Price);
+        Assert.Equal(productInfoDto.Stock, response.Stock);
     }
 
     [Fact]
@@ -230,10 +213,10 @@ public class ProductServiceTest
     {
         //arrange
         const string productCode = "P1";
-        var tcsProductDTO = new TaskCompletionSource<Product?>();
-        tcsProductDTO.SetResult(null);
+        var tcsProductDto = new TaskCompletionSource<Product?>();
+        tcsProductDto.SetResult(null);
         _mockUnitOfWork.Setup(unitOfWork => unitOfWork.Product.GetByCodeAsync(productCode))
-            .Returns(tcsProductDTO.Task);
+            .Returns(tcsProductDto.Task);
 
         _mockUnitOfWork.Verify(unitOfWork => unitOfWork.Campaign.GetCampaignByProductCodeAsync(productCode),
             Times.Never);
@@ -242,10 +225,6 @@ public class ProductServiceTest
         var response = await _service.GetProduct(productCode);
 
         //assert
-        Assert.IsType<BaseResponse<ProductInfoDTO>>(response);
-        Assert.Equal((int)HttpStatusCode.NotFound, response.StatusCode);
-        Assert.False(response.IsSuccess);
-        Assert.Null(response.Result);
-        Assert.Equal($"Product {productCode} is not found.", response.Message);
+        Assert.Null(response);
     }
 }

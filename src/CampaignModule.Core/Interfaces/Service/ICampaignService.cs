@@ -1,12 +1,11 @@
 using CampaignModule.Domain.DTO;
-using CampaignModule.Domain.Response;
 
 namespace CampaignModule.Core.Interfaces.Service;
 
 public interface ICampaignService
 {
-    Task<BaseResponse<CampaignDTO>> CreateCampaign(CampaignDTO campaignDTO);
-    Task<BaseResponse<CampaignInfoDTO>> GetCampaign(string name);
-    Task<BaseResponse<string>> IncreaseTime(int time, string name);
+    Task<CampaignDTO> CreateCampaign(CampaignDTO campaignDto);
+    Task<CampaignInfoDTO> GetCampaign(string name);
+    Task<string> IncreaseTime(int time, string name);
     Task<bool> CampaignAvailable(string productCode);
 }

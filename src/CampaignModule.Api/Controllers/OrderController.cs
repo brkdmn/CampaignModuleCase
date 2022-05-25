@@ -1,6 +1,8 @@
+using System.Net;
 using CampaignModule.Core.Interfaces.Service;
 using CampaignModule.Domain.DTO;
 using CampaignModule.Domain.Request;
+using CampaignModule.Domain.Response;
 using Mapster;
 using Microsoft.AspNetCore.Mvc;
 
@@ -19,7 +21,25 @@ public class OrderController : BaseController<OrderController>
     [HttpPost("create")]
     public async Task<IActionResult> CreateOrder(OrderCreateRequest orderCreateRequest)
     {
-        var result = await _orderService.CreateOrder(orderCreateRequest.Adapt<OrderDTO>());
-        return StatusCode(result.StatusCode, result);
+        try
+        {
+            var orderDto = await _orderService.CreateOrder(orderCreateRequest.Adapt<OrderDTO>());
+            var response = new BaseResponse<OrderDTO>
+            {
+                IsSuccess = true,
+                Result = orderDto,
+                Message = orderDto.ToString(),
+                StatusCode = (int)HttpStatusCode.OK
+            };
+
+            return Ok(response);
+        }
+        catch (Exception e)
+        {
+            Logger.Log(LogLevel.Error,
+                "Error occurred when creating order, productCode:{}, Ex: {}", orderCreateRequest.ProductCode,
+                e.Message);
+            throw new Exception("Error occurred when creating order.");
+        }
     }
 }
