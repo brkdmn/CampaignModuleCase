@@ -124,7 +124,7 @@ public class OrderServiceTest
 
         //assert
         var exception = await Assert.ThrowsAsync<AppException>((Func<Task>)Act);
-        Assert.Equal("Product stock is not enough.", exception.Message);
+        Assert.Equal("Product is stock out.", exception.Message);
         Assert.Equal(HttpStatusCode.BadRequest, exception.StatusCode);
     }
 

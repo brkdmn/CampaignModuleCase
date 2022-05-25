@@ -27,7 +27,7 @@ public class OrderService : IOrderService
 
 
         if (product.Stock < orderDto.Quantity)
-            throw new AppException("Product stock is not enough.", HttpStatusCode.BadRequest);
+            throw new AppException("Product is stock out.", HttpStatusCode.BadRequest);
 
         var orderEntity = Order.Build(orderDto, product.CampaignName, product.Price);
         var createResult = await _unitOfWork.Order.AddAsync(orderEntity);
