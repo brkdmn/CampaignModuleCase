@@ -29,10 +29,10 @@ public class OrderController : BaseController<OrderController>
                 IsSuccess = true,
                 Result = orderDto,
                 Message = orderDto.ToString(),
-                StatusCode = (int)HttpStatusCode.OK
+                StatusCode = (int)HttpStatusCode.Created
             };
 
-            return Ok(response);
+            return StatusCode((int)HttpStatusCode.Created, response);
         }
         catch (Exception e)
         {

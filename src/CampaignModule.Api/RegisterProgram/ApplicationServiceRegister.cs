@@ -12,7 +12,7 @@ public class ApplicationServiceRegister : IWebApplicationBuilderRegister
             .AddFluentValidation(fvc =>
                 fvc.RegisterValidatorsFromAssemblyContaining<Program>());
 
-        builder.Services.AddSingleton<PostgresSqlConfiguration>();
+        builder.Services.AddSingleton<IPostgresSqlConfiguration, PostgresSqlConfiguration>();
         builder.Services.AddSwaggerGen();
         builder.Services.AddEndpointsApiExplorer();
     }

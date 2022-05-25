@@ -1,6 +1,7 @@
 using System.Net;
 using System.Text.Json;
 using CampaignModule.Core.Helper;
+using CampaignModule.Domain.Response;
 
 namespace CampaignModule.Api.Middleware;
 
@@ -32,7 +33,13 @@ public class ErrorHandlerMiddleware
                 _ => (int)HttpStatusCode.InternalServerError
             };
 
-            var result = JsonSerializer.Serialize(new { message = error?.Message });
+            var result = JsonSerializer.Serialize(new BaseResponse<object>
+            {
+                Message = error.Message,
+                StatusCode = response.StatusCode,
+                IsSuccess = false,
+                Result = null
+            });
             await response.WriteAsync(result);
         }
     }

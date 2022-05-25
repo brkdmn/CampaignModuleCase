@@ -1,9 +1,10 @@
+using System.Net;
+using CampaignModule.Core.Helper;
 using CampaignModule.Core.Interfaces.Infrastructer;
 using CampaignModule.Core.Interfaces.Service;
 using CampaignModule.Core.Service;
 using CampaignModule.Domain.DTO;
 using CampaignModule.Domain.Entity;
-using CampaignModule.Domain.Response;
 using Moq;
 
 namespace CampaignModule.Core.Test.Service;
@@ -14,9 +15,9 @@ public class ProductServiceTest
     private readonly Mock<IUnitOfWork> _mockUnitOfWork;
     private readonly ProductService _service;
 
-    public ProductServiceTest(Mock<IUnitOfWork> mockUnitOfWork)
+    public ProductServiceTest()
     {
-        _mockUnitOfWork = mockUnitOfWork;
+        _mockUnitOfWork = new Mock<IUnitOfWork>();
         _mockCampaignService = new Mock<ICampaignService>();
         _service = new ProductService(_mockCampaignService.Object, _mockUnitOfWork.Object);
     }
@@ -42,7 +43,7 @@ public class ProductServiceTest
         var response = await _service.CreateProduct(productDto);
 
         //assert
-        Assert.IsType<BaseResponse<ProductDTO>>(response);
+        Assert.IsType<ProductDTO>(response);
         Assert.Equal(productCode, response.ProductCode);
         Assert.Equal(100, response.Price);
         Assert.Equal(1000, response.Stock);
@@ -63,10 +64,15 @@ public class ProductServiceTest
         _mockUnitOfWork.Verify(unitOfWork => unitOfWork.Product.AddAsync(It.IsAny<Product>()), Times.Never);
 
         //act
-        var response = await _service.CreateProduct(productDto);
+        async Task Act()
+        {
+            await _service.CreateProduct(productDto);
+        }
 
         //assert
-        Assert.Null(response);
+        var exception = await Assert.ThrowsAsync<AppException>((Func<Task>)Act);
+        Assert.Equal("Product is already exist.", exception.Message);
+        Assert.Equal(HttpStatusCode.BadRequest, exception.StatusCode);
     }
 
     [Fact]
@@ -145,7 +151,7 @@ public class ProductServiceTest
         var response = await _service.GetProduct(productCode);
 
         //assert
-        Assert.IsType<BaseResponse<ProductInfoDTO>>(response);
+        Assert.IsType<ProductInfoDTO>(response);
         Assert.Equal(productInfoDto.CampaignName, response.CampaignName);
         Assert.Equal(productInfoDto.Price, response.Price);
         Assert.Equal(productInfoDto.Stock, response.Stock);
@@ -202,7 +208,7 @@ public class ProductServiceTest
         var response = await _service.GetProduct(productCode);
 
         //assert
-        Assert.IsType<BaseResponse<ProductInfoDTO>>(response);
+        Assert.IsType<ProductInfoDTO>(response);
         Assert.Equal(productInfoDto.CampaignName, response.CampaignName);
         Assert.Equal(productInfoDto.Price, response.Price);
         Assert.Equal(productInfoDto.Stock, response.Stock);
@@ -222,9 +228,14 @@ public class ProductServiceTest
             Times.Never);
 
         //act
-        var response = await _service.GetProduct(productCode);
+        async Task Act()
+        {
+            await _service.GetProduct(productCode);
+        }
 
         //assert
-        Assert.Null(response);
+        var exception = await Assert.ThrowsAsync<AppException>((Func<Task>)Act);
+        Assert.Equal("Product P1 is not found.", exception.Message);
+        Assert.Equal(HttpStatusCode.NotFound, exception.StatusCode);
     }
 }

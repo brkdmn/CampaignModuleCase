@@ -5,7 +5,6 @@ using CampaignModule.Core.Interfaces.Service;
 using CampaignModule.Domain.DTO;
 using CampaignModule.Domain.Entity;
 using CampaignModule.Domain.Enum;
-using CampaignModule.Domain.Response;
 
 namespace CampaignModule.Core.Service;
 
@@ -25,7 +24,7 @@ public class CampaignService : ICampaignService
             throw new AppException("Product is not found.", HttpStatusCode.NotFound);
 
         var campaignEntity = await _unitOfWork.Campaign.GetByCodeAsync(campaignDto.Name);
-        if (campaignEntity == null)
+        if (campaignEntity != null)
             throw new AppException("Campaign is already exist.", HttpStatusCode.BadRequest);
 
         campaignEntity = Campaign.Build(campaignDto, 0);
@@ -77,8 +76,6 @@ public class CampaignService : ICampaignService
 
     public async Task<string> IncreaseTime(int time, string name)
     {
-        var response = new BaseResponse<string>();
-
         var campaignEntity = await _unitOfWork.Campaign.GetByCodeAsync(name);
 
         if (campaignEntity == null)

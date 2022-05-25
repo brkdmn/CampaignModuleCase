@@ -57,7 +57,7 @@ public class ProductController : BaseController<ProductController>
                 StatusCode = (int)HttpStatusCode.Created
             };
 
-            return Ok(response);
+            return CreatedAtAction(nameof(GetProduct), new { productCode = productDto.ProductCode }, response);
         }
         catch (Exception e)
         {

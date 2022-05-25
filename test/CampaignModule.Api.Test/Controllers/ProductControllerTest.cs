@@ -5,6 +5,7 @@ using CampaignModule.Domain.DTO;
 using CampaignModule.Domain.Request;
 using CampaignModule.Domain.Response;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.Extensions.Logging;
 using Moq;
 
 namespace CampaignModule.Api.Test.Controllers;
@@ -16,8 +17,12 @@ public class ProductControllerTest
 
     public ProductControllerTest()
     {
+        var logger = new Mock<ILogger<ProductController>>();
         _mockService = new Mock<IProductService>();
-        _controller = new ProductController(_mockService.Object);
+        _controller = new ProductController(_mockService.Object)
+        {
+            _logger = logger.Object
+        };
     }
 
     [Fact]
@@ -44,16 +49,34 @@ public class ProductControllerTest
         var result = await _controller.CreateProduct(productCreateRequest);
 
         //assert
-        var objectResult = Assert.IsType<ObjectResult>(result);
-        var response = Assert.IsType<BaseResponse<ProductDTO>>(objectResult.Value);
-        Assert.NotNull(objectResult.StatusCode);
-        Assert.Equal((int)HttpStatusCode.Created, objectResult.StatusCode);
+        var createdAtActionResult = Assert.IsType<CreatedAtActionResult>(result);
+        var response = Assert.IsType<BaseResponse<ProductDTO>>(createdAtActionResult.Value);
+        Assert.NotNull(createdAtActionResult.StatusCode);
+        Assert.Equal((int)HttpStatusCode.Created, createdAtActionResult.StatusCode);
         Assert.True(response.IsSuccess);
         Assert.NotNull(response.Result);
         Assert.Equal(productCode, response.Result!.ProductCode);
         Assert.Equal(1000, response.Result!.Stock);
         Assert.Equal(100, response.Result!.Price);
         Assert.Equal(productDto.ToString(), response.Message);
+    }
+
+    [Fact]
+    public async Task CreateProduct_ErrorOccuring_ThrowException()
+    {
+        //arrange
+        _mockService.Setup(service => service.CreateProduct(It.IsAny<ProductDTO>()))
+            .Throws(new Exception());
+
+        //act
+        async Task Act()
+        {
+            await _controller.CreateProduct(new ProductCreateRequest());
+        }
+
+        //assert
+        var exception = await Assert.ThrowsAsync<Exception>((Func<Task>)Act);
+        Assert.Equal("Error occurred when creating product.", exception.Message);
     }
 
     [Fact]
@@ -78,7 +101,7 @@ public class ProductControllerTest
         var result = await _controller.GetProduct(productCode);
 
         //assert
-        var objectResult = Assert.IsType<ObjectResult>(result);
+        var objectResult = Assert.IsType<OkObjectResult>(result);
         var response = Assert.IsType<BaseResponse<ProductInfoDTO>>(objectResult.Value);
         Assert.NotNull(objectResult.StatusCode);
         Assert.Equal((int)HttpStatusCode.OK, objectResult.StatusCode);
@@ -88,5 +111,25 @@ public class ProductControllerTest
         Assert.Equal(campaignName, response.Result!.CampaignName);
         Assert.Equal(100, response.Result!.Price);
         Assert.Equal(1000, response.Result!.Stock);
+    }
+
+    [Fact]
+    public async Task GetProductInfo_ErrorOccuring_ThrowException()
+    {
+        //arrange
+        const string productCode = "P1";
+
+        _mockService.Setup(service => service.GetProduct(productCode))
+            .Throws(new Exception());
+
+        //act
+        async Task Act()
+        {
+            await _controller.GetProduct(productCode);
+        }
+
+        //assert
+        var exception = await Assert.ThrowsAsync<Exception>((Func<Task>)Act);
+        Assert.Equal("Error occurred when getting product info.", exception.Message);
     }
 }

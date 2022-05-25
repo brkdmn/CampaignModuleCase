@@ -7,9 +7,9 @@ namespace CampaignModule.Core.Repository;
 
 public class OrderRepository : IOrderRepository
 {
-    private readonly PostgresSqlConfiguration _postgresSqlConfiguration;
+    private readonly IPostgresSqlConfiguration _postgresSqlConfiguration;
 
-    public OrderRepository(PostgresSqlConfiguration postgresSqlConfiguration)
+    public OrderRepository(IPostgresSqlConfiguration postgresSqlConfiguration)
     {
         _postgresSqlConfiguration = postgresSqlConfiguration;
     }

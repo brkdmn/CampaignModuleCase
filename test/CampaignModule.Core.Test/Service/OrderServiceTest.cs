@@ -1,9 +1,10 @@
+using System.Net;
+using CampaignModule.Core.Helper;
 using CampaignModule.Core.Interfaces.Infrastructer;
 using CampaignModule.Core.Interfaces.Service;
 using CampaignModule.Core.Service;
 using CampaignModule.Domain.DTO;
 using CampaignModule.Domain.Entity;
-using CampaignModule.Domain.Response;
 using Moq;
 
 namespace CampaignModule.Core.Test.Service;
@@ -53,7 +54,7 @@ public class OrderServiceTest
         var response = await _service.CreateOrder(orderDTO);
 
         //assert
-        Assert.IsType<BaseResponse<OrderDTO>>(response);
+        Assert.IsType<OrderDTO>(response);
         Assert.NotNull(response);
         Assert.Equal(productCode, response.ProductCode);
         Assert.Equal(3, response.Quantity);
@@ -78,11 +79,15 @@ public class OrderServiceTest
         _mockUnitOfWork.VerifyNoOtherCalls();
 
         //act
-        var response = await _service.CreateOrder(orderDto);
+        async Task Act()
+        {
+            await _service.CreateOrder(orderDto);
+        }
 
         //assert
-        Assert.IsType<BaseResponse<OrderDTO>>(response);
-        Assert.Null(response);
+        var exception = await Assert.ThrowsAsync<AppException>((Func<Task>)Act);
+        Assert.Equal("Product is not found.", exception.Message);
+        Assert.Equal(HttpStatusCode.NotFound, exception.StatusCode);
     }
 
 
@@ -112,11 +117,15 @@ public class OrderServiceTest
         _mockUnitOfWork.VerifyNoOtherCalls();
 
         //act
-        var response = await _service.CreateOrder(orderDTO);
+        async Task Act()
+        {
+            await _service.CreateOrder(orderDTO);
+        }
 
         //assert
-        Assert.IsType<BaseResponse<OrderDTO>>(response);
-        Assert.Null(response);
+        var exception = await Assert.ThrowsAsync<AppException>((Func<Task>)Act);
+        Assert.Equal("Product stock is not enough.", exception.Message);
+        Assert.Equal(HttpStatusCode.BadRequest, exception.StatusCode);
     }
 
     [Fact]
@@ -152,7 +161,6 @@ public class OrderServiceTest
         {
             await _service.CreateOrder(orderDTO);
         }
-
 
         //assert
         var exception = await Assert.ThrowsAsync<Exception>((Func<Task>)Act);

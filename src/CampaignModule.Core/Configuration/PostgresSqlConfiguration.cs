@@ -5,7 +5,7 @@ using Npgsql;
 
 namespace CampaignModule.Core.Configuration;
 
-public class PostgresSqlConfiguration
+public class PostgresSqlConfiguration : IPostgresSqlConfiguration
 {
     private readonly IConfiguration _configuration;
 
@@ -24,4 +24,9 @@ public class PostgresSqlConfiguration
 
         return connection;
     }
+}
+
+public interface IPostgresSqlConfiguration
+{
+    Task<IDbConnection> GetConnection();
 }

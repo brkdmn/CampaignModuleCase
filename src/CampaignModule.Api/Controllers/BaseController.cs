@@ -5,7 +5,7 @@ namespace CampaignModule.Api.Controllers;
 [ApiController]
 public abstract class BaseController<T> : ControllerBase where T : BaseController<T>
 {
-    private ILogger<T>? _logger;
+    public ILogger<T>? _logger;
 
-    protected ILogger<T> Logger => _logger ??= HttpContext?.RequestServices.GetService<ILogger<T>>()!;
+    public ILogger<T> Logger => _logger ??= HttpContext?.RequestServices.GetService<ILogger<T>>()!;
 }

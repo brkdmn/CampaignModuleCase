@@ -5,6 +5,7 @@ using CampaignModule.Domain.DTO;
 using CampaignModule.Domain.Request;
 using CampaignModule.Domain.Response;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.Extensions.Logging;
 using Moq;
 
 namespace CampaignModule.Api.Test.Controllers;
@@ -16,8 +17,12 @@ public class OrderControllerTest
 
     public OrderControllerTest()
     {
+        var logger = new Mock<ILogger<OrderController>>();
         _mockService = new Mock<IOrderService>();
-        _controller = new OrderController(_mockService.Object);
+        _controller = new OrderController(_mockService.Object)
+        {
+            _logger = logger.Object
+        };
     }
 
     [Fact]
@@ -56,5 +61,23 @@ public class OrderControllerTest
         Assert.Equal(productCode, response.Result!.ProductCode);
         Assert.Equal(5, response.Result!.Quantity);
         Assert.Equal(orderDto.ToString(), response.Message);
+    }
+
+    [Fact]
+    public async Task CreateOrder_ErrorOccuring_ThrowException()
+    {
+        //arrange
+        _mockService.Setup(service => service.CreateOrder(It.IsAny<OrderDTO>()))
+            .Throws(new Exception());
+
+        //act
+        async Task Act()
+        {
+            await _controller.CreateOrder(new OrderCreateRequest());
+        }
+
+        //assert
+        var exception = await Assert.ThrowsAsync<Exception>((Func<Task>)Act);
+        Assert.Equal("Error occurred when creating order.", exception.Message);
     }
 }
