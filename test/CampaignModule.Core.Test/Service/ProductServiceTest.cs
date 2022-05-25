@@ -1,5 +1,6 @@
 using System.Net;
-using CampaignModule.Core.Repository;
+using CampaignModule.Core.Interfaces.Infrastructer;
+using CampaignModule.Core.Interfaces.Service;
 using CampaignModule.Core.Service;
 using CampaignModule.Domain.DTO;
 using CampaignModule.Domain.Entity;
@@ -10,20 +11,15 @@ namespace CampaignModule.Core.Test.Service;
 
 public class ProductServiceTest
 {
-    private readonly Mock<ICampaignRepository> _mockCampaignRepository;
     private readonly Mock<ICampaignService> _mockCampaignService;
-    private readonly Mock<IOrderRepository> _mockOrderRepository;
-    private readonly Mock<IProductRepository> _mockProductRepository;
+    private readonly Mock<IUnitOfWork> _mockUnitOfWork;
     private readonly ProductService _service;
 
-    public ProductServiceTest()
+    public ProductServiceTest(Mock<IUnitOfWork> mockUnitOfWork)
     {
-        _mockProductRepository = new Mock<IProductRepository>();
-        _mockCampaignRepository = new Mock<ICampaignRepository>();
-        _mockOrderRepository = new Mock<IOrderRepository>();
+        _mockUnitOfWork = mockUnitOfWork;
         _mockCampaignService = new Mock<ICampaignService>();
-        _service = new ProductService(_mockProductRepository.Object,
-            _mockCampaignRepository.Object, _mockOrderRepository.Object, _mockCampaignService.Object);
+        _service = new ProductService(_mockCampaignService.Object, _mockUnitOfWork.Object);
     }
 
     [Fact]
@@ -33,14 +29,14 @@ public class ProductServiceTest
         const string productCode = "P1";
         var productDTO = new ProductDTO(productCode, 100, 1000);
 
-        var tcsProductDTO = new TaskCompletionSource<ProductEntity?>();
+        var tcsProductDTO = new TaskCompletionSource<Product?>();
         tcsProductDTO.SetResult(null);
-        _mockProductRepository.Setup(service => service.GetProduct(productCode))
+        _mockUnitOfWork.Setup(unitOfWork => unitOfWork.Product.GetByCodeAsync(productCode))
             .Returns(tcsProductDTO.Task);
 
         var tcsCreateProduct = new TaskCompletionSource<int>();
         tcsCreateProduct.SetResult(1);
-        _mockProductRepository.Setup(repository => repository.CreateProduct(It.IsAny<ProductEntity>()))
+        _mockUnitOfWork.Setup(unitOfWork => unitOfWork.Product.AddAsync(It.IsAny<Product>()))
             .Returns(tcsCreateProduct.Task);
 
         //act
@@ -64,12 +60,12 @@ public class ProductServiceTest
         const string productCode = "P1";
         var productDTO = new ProductDTO(productCode, 100, 1000);
 
-        var tcsProductDTO = new TaskCompletionSource<ProductEntity?>();
-        tcsProductDTO.SetResult(new ProductEntity());
-        _mockProductRepository.Setup(service => service.GetProduct(productCode))
+        var tcsProductDTO = new TaskCompletionSource<Product?>();
+        tcsProductDTO.SetResult(new Product());
+        _mockUnitOfWork.Setup(unitOfWork => unitOfWork.Product.GetByCodeAsync(productCode))
             .Returns(tcsProductDTO.Task);
 
-        _mockProductRepository.Verify(repository => repository.CreateProduct(It.IsAny<ProductEntity>()), Times.Never);
+        _mockUnitOfWork.Verify(unitOfWork => unitOfWork.Product.AddAsync(It.IsAny<Product>()), Times.Never);
 
         //act
         var response = await _service.CreateProduct(productDTO);
@@ -89,14 +85,14 @@ public class ProductServiceTest
         const string productCode = "P1";
         var productDTO = new ProductDTO(productCode, 100, 1000);
 
-        var tcsProductDTO = new TaskCompletionSource<ProductEntity?>();
+        var tcsProductDTO = new TaskCompletionSource<Product?>();
         tcsProductDTO.SetResult(null);
-        _mockProductRepository.Setup(service => service.GetProduct(productCode))
+        _mockUnitOfWork.Setup(unitOfWork => unitOfWork.Product.GetByCodeAsync(productCode))
             .Returns(tcsProductDTO.Task);
 
         var tcsCreateProduct = new TaskCompletionSource<int>();
         tcsCreateProduct.SetResult(0);
-        _mockProductRepository.Setup(repository => repository.CreateProduct(It.IsAny<ProductEntity>()))
+        _mockUnitOfWork.Setup(unitOfWork => unitOfWork.Product.AddAsync(It.IsAny<Product>()))
             .Returns(tcsCreateProduct.Task);
 
         //act
@@ -122,23 +118,23 @@ public class ProductServiceTest
             Stock = 1000
         };
 
-        var tcsProductEntity = new TaskCompletionSource<ProductEntity?>();
-        tcsProductEntity.SetResult(new ProductEntity
+        var tcsProductEntity = new TaskCompletionSource<Product?>();
+        tcsProductEntity.SetResult(new Product
         {
             ProductCode = productCode,
             Price = 100,
             Stock = 1000
         });
-        _mockProductRepository.Setup(repository => repository.GetProduct(productCode))
+        _mockUnitOfWork.Setup(unitOfWork => unitOfWork.Product.GetByCodeAsync(productCode))
             .Returns(tcsProductEntity.Task);
 
-        var tcsCampaignEntity = new TaskCompletionSource<CampaignEntity?>();
-        tcsCampaignEntity.SetResult(new CampaignEntity
+        var tcsCampaignEntity = new TaskCompletionSource<Campaign?>();
+        tcsCampaignEntity.SetResult(new Campaign
         {
             ProductCode = productCode,
             Name = "C1"
         });
-        _mockCampaignRepository.Setup(repository => repository.GetCampaignByProductCode(productCode))
+        _mockUnitOfWork.Setup(unitOfWork => unitOfWork.Campaign.GetCampaignByProductCodeAsync(productCode))
             .Returns(tcsCampaignEntity.Task);
 
 
@@ -152,7 +148,7 @@ public class ProductServiceTest
         {
             Total = 0
         });
-        _mockOrderRepository.Setup(repository => repository.GetSalesCountByProductCode(productCode))
+        _mockUnitOfWork.Setup(unitOfWork => unitOfWork.Order.GetSalesCountByProductCodeAsync(productCode))
             .Returns(tcsSalesCountByProductCod.Task!);
         //act
         var response = await _service.GetProduct(productCode);
@@ -180,18 +176,18 @@ public class ProductServiceTest
             Stock = 1000
         };
 
-        var tcsProductEntity = new TaskCompletionSource<ProductEntity?>();
-        tcsProductEntity.SetResult(new ProductEntity
+        var tcsProductEntity = new TaskCompletionSource<Product?>();
+        tcsProductEntity.SetResult(new Product
         {
             ProductCode = productCode,
             Price = 100,
             Stock = 1000
         });
-        _mockProductRepository.Setup(repository => repository.GetProduct(productCode))
+        _mockUnitOfWork.Setup(unitOfWork => unitOfWork.Product.GetByCodeAsync(productCode))
             .Returns(tcsProductEntity.Task);
 
-        var tcsCampaignEntity = new TaskCompletionSource<CampaignEntity?>();
-        tcsCampaignEntity.SetResult(new CampaignEntity
+        var tcsCampaignEntity = new TaskCompletionSource<Campaign?>();
+        tcsCampaignEntity.SetResult(new Campaign
         {
             ProductCode = productCode,
             Name = "C1",
@@ -199,7 +195,7 @@ public class ProductServiceTest
             Duration = 5,
             CurrentDuration = 1
         });
-        _mockCampaignRepository.Setup(repository => repository.GetCampaignByProductCode(productCode))
+        _mockUnitOfWork.Setup(unitOfWork => unitOfWork.Campaign.GetCampaignByProductCodeAsync(productCode))
             .Returns(tcsCampaignEntity.Task);
 
 
@@ -213,7 +209,7 @@ public class ProductServiceTest
         {
             Total = 0
         });
-        _mockOrderRepository.Setup(repository => repository.GetSalesCountByProductCode(productCode))
+        _mockUnitOfWork.Setup(unitOfWork => unitOfWork.Order.GetSalesCountByProductCodeAsync(productCode))
             .Returns(tcsSalesCountByProductCod.Task!);
         //act
         var response = await _service.GetProduct(productCode);
@@ -234,12 +230,13 @@ public class ProductServiceTest
     {
         //arrange
         const string productCode = "P1";
-        var tcsProductDTO = new TaskCompletionSource<ProductEntity?>();
+        var tcsProductDTO = new TaskCompletionSource<Product?>();
         tcsProductDTO.SetResult(null);
-        _mockProductRepository.Setup(repository => repository.GetProduct(productCode))
+        _mockUnitOfWork.Setup(unitOfWork => unitOfWork.Product.GetByCodeAsync(productCode))
             .Returns(tcsProductDTO.Task);
 
-        _mockCampaignRepository.Verify(repository => repository.GetCampaignByProductCode(productCode), Times.Never);
+        _mockUnitOfWork.Verify(unitOfWork => unitOfWork.Campaign.GetCampaignByProductCodeAsync(productCode),
+            Times.Never);
 
         //act
         var response = await _service.GetProduct(productCode);

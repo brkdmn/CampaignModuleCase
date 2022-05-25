@@ -1,6 +1,6 @@
 using System.Net;
 using CampaignModule.Api.Controllers;
-using CampaignModule.Core.Service;
+using CampaignModule.Core.Interfaces.Service;
 using CampaignModule.Domain.DTO;
 using CampaignModule.Domain.Request;
 using CampaignModule.Domain.Response;
@@ -11,14 +11,15 @@ namespace CampaignModule.Api.Test.Controllers;
 
 public class OrderControllerTest
 {
-    private readonly Mock<IOrderService> _mockService;
     private readonly OrderController _controller;
+    private readonly Mock<IOrderService> _mockService;
+
     public OrderControllerTest()
     {
         _mockService = new Mock<IOrderService>();
         _controller = new OrderController(_mockService.Object);
     }
-    
+
     [Fact]
     public async Task CreateOrder_CallEndpoint_ReturnsHttpStatusCodeAndCreatedOrder()
     {
@@ -29,13 +30,13 @@ public class OrderControllerTest
             ProductCode = productCode,
             Quantity = 5
         };
-        
-        var orderDto = new OrderDTO()
+
+        var orderDto = new OrderDTO
         {
             ProductCode = productCode,
             Quantity = 5
         };
-        
+
         var tcs = new TaskCompletionSource<BaseResponse<OrderDTO>>();
         tcs.SetResult(new BaseResponse<OrderDTO>
         {
@@ -44,13 +45,13 @@ public class OrderControllerTest
             Message = orderDto.ToString(),
             StatusCode = (int)HttpStatusCode.Created
         });
-        
+
         _mockService.Setup(service => service.CreateOrder(It.IsAny<OrderDTO>()))
             .Returns(tcs.Task);
-        
+
         //act
         var result = await _controller.CreateOrder(orderCreateRequest);
-        
+
         //assert
         var objectResult = Assert.IsType<ObjectResult>(result);
         var response = Assert.IsType<BaseResponse<OrderDTO>>(objectResult.Value);

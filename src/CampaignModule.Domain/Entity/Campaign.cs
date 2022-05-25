@@ -2,7 +2,7 @@ using CampaignModule.Domain.DTO;
 
 namespace CampaignModule.Domain.Entity;
 
-public class CampaignEntity : BaseEntity
+public class Campaign : BaseEntity
 {
     public string Name { get; set; }
     public string ProductCode { get; set; }
@@ -10,10 +10,10 @@ public class CampaignEntity : BaseEntity
     public int CurrentDuration { get; set; }
     public int PriceManipulationLimit { get; set; }
     public int TargetSalesCount { get; set; }
-    
-    public static CampaignEntity Build(CampaignDTO campaignDto, int currentDuration)
+
+    public static Campaign Build(CampaignDTO campaignDto, int currentDuration)
     {
-        return new CampaignEntity
+        return new Campaign
         {
             Id = Guid.NewGuid(),
             ProductCode = campaignDto.ProductCode,

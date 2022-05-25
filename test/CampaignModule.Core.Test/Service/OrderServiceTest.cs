@@ -1,5 +1,6 @@
 using System.Net;
-using CampaignModule.Core.Repository;
+using CampaignModule.Core.Interfaces.Infrastructer;
+using CampaignModule.Core.Interfaces.Service;
 using CampaignModule.Core.Service;
 using CampaignModule.Domain.DTO;
 using CampaignModule.Domain.Entity;
@@ -10,16 +11,15 @@ namespace CampaignModule.Core.Test.Service;
 
 public class OrderServiceTest
 {
-    private readonly Mock<IOrderRepository> _mockOrderRepository;
     private readonly Mock<IProductService> _mockProductService;
+    private readonly Mock<IUnitOfWork> _mockUnitOfWork;
     private readonly OrderService _service;
 
     public OrderServiceTest()
     {
-        _mockOrderRepository = new Mock<IOrderRepository>();
+        _mockUnitOfWork = new Mock<IUnitOfWork>();
         _mockProductService = new Mock<IProductService>();
-        _service = new OrderService(_mockOrderRepository.Object,
-            _mockProductService.Object);
+        _service = new OrderService(_mockProductService.Object, _mockUnitOfWork.Object);
     }
 
     [Fact]
@@ -53,7 +53,7 @@ public class OrderServiceTest
 
         var tcsCreateOrder = new TaskCompletionSource<int>();
         tcsCreateOrder.SetResult(1);
-        _mockOrderRepository.Setup(repository => repository.CreateOrder(It.IsAny<OrderEntity>()))
+        _mockUnitOfWork.Setup(unitOfWork => unitOfWork.Order.AddAsync(It.IsAny<Order>()))
             .Returns(tcsCreateOrder.Task);
 
         //act
@@ -91,7 +91,7 @@ public class OrderServiceTest
         _mockProductService.Setup(service => service.GetProduct(productCode))
             .Returns(tcsProductInfo.Task!);
 
-        _mockOrderRepository.VerifyNoOtherCalls();
+        _mockUnitOfWork.VerifyNoOtherCalls();
 
         //act
         var response = await _service.CreateOrder(orderDTO);
@@ -134,7 +134,7 @@ public class OrderServiceTest
         _mockProductService.Setup(service => service.GetProduct(productCode))
             .Returns(tcsProductInfo.Task);
 
-        _mockOrderRepository.VerifyNoOtherCalls();
+        _mockUnitOfWork.VerifyNoOtherCalls();
 
         //act
         var response = await _service.CreateOrder(orderDTO);
@@ -178,7 +178,7 @@ public class OrderServiceTest
 
         var tcsCreateOrder = new TaskCompletionSource<int>();
         tcsCreateOrder.SetResult(0);
-        _mockOrderRepository.Setup(repository => repository.CreateOrder(It.IsAny<OrderEntity>()))
+        _mockUnitOfWork.Setup(unitOfWork => unitOfWork.Order.AddAsync(It.IsAny<Order>()))
             .Returns(tcsCreateOrder.Task);
 
         //act

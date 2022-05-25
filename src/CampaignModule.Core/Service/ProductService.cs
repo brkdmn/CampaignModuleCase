@@ -1,5 +1,6 @@
 using System.Net;
-using CampaignModule.Core.Repository;
+using CampaignModule.Core.Interfaces.Infrastructer;
+using CampaignModule.Core.Interfaces.Service;
 using CampaignModule.Domain.DTO;
 using CampaignModule.Domain.Entity;
 using CampaignModule.Domain.Response;
@@ -8,27 +9,20 @@ namespace CampaignModule.Core.Service;
 
 public class ProductService : IProductService
 {
-    private readonly ICampaignRepository _campaignRepository;
     private readonly ICampaignService _campaignService;
-    private readonly IOrderRepository _orderRepository;
-    private readonly IProductRepository _productRepository;
+    private readonly IUnitOfWork _unitOfWork;
 
     public ProductService(
-        IProductRepository productRepository,
-        ICampaignRepository campaignRepository,
-        IOrderRepository orderRepository,
-        ICampaignService campaignService)
+        ICampaignService campaignService, IUnitOfWork unitOfWork)
     {
-        _productRepository = productRepository;
-        _campaignRepository = campaignRepository;
-        _orderRepository = orderRepository;
         _campaignService = campaignService;
+        _unitOfWork = unitOfWork;
     }
 
     public async Task<BaseResponse<ProductDTO>> CreateProduct(ProductDTO productDTO)
     {
         var response = new BaseResponse<ProductDTO>();
-        var product = await _productRepository.GetProduct(productDTO.ProductCode);
+        var product = await _unitOfWork.Product.GetByCodeAsync(productDTO.ProductCode);
 
         if (product != null)
         {
@@ -37,8 +31,8 @@ public class ProductService : IProductService
             return response;
         }
 
-        product = ProductEntity.Build(productDTO);
-        var createResult = await _productRepository.CreateProduct(product);
+        product = Product.Build(productDTO);
+        var createResult = await _unitOfWork.Product.AddAsync(product);
         if (createResult != 1) throw new Exception("There is a technical problem.");
 
         response.IsSuccess = true;
@@ -51,11 +45,11 @@ public class ProductService : IProductService
     public async Task<BaseResponse<ProductInfoDTO>> GetProduct(string productCode)
     {
         var response = new BaseResponse<ProductInfoDTO>();
-        var productEntity = await _productRepository.GetProduct(productCode);
+        var productEntity = await _unitOfWork.Product.GetByCodeAsync(productCode);
 
         if (productEntity != null)
         {
-            var campaign = await _campaignRepository.GetCampaignByProductCode(productEntity.ProductCode);
+            var campaign = await _unitOfWork.Campaign.GetCampaignByProductCodeAsync(productEntity.ProductCode);
             var productInfoDTO = new ProductInfoDTO
             {
                 CampaignName = campaign?.Name ?? string.Empty,
@@ -75,18 +69,18 @@ public class ProductService : IProductService
         return response;
     }
 
-    private async Task<decimal> CalculateProductPrice(ProductEntity productEntity)
+    private async Task<decimal> CalculateProductPrice(Product product)
     {
-        if (!await _campaignService.CampaignAvailable(productEntity.ProductCode)) return productEntity.Price;
-        var campaign = await _campaignRepository.GetCampaignByProductCode(productEntity.ProductCode);
-        return productEntity.Price
-               - campaign.PriceManipulationLimit / productEntity.Price * 100 /
+        if (!await _campaignService.CampaignAvailable(product.ProductCode)) return product.Price;
+        var campaign = await _unitOfWork.Campaign.GetCampaignByProductCodeAsync(product.ProductCode);
+        return product.Price
+               - campaign.PriceManipulationLimit / product.Price * 100 /
                (campaign.Duration - campaign.CurrentDuration);
     }
 
     private async Task<int> CalculateProductStock(int totalStock, string productCode)
     {
-        var saleCount = await _orderRepository.GetSalesCountByProductCode(productCode);
+        var saleCount = await _unitOfWork.Order.GetSalesCountByProductCodeAsync(productCode);
         return totalStock - (saleCount?.Total ?? 0);
     }
 }

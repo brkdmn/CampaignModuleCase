@@ -1,6 +1,6 @@
 using System.Net;
 using CampaignModule.Api.Controllers;
-using CampaignModule.Core.Service;
+using CampaignModule.Core.Interfaces.Service;
 using CampaignModule.Domain.DTO;
 using CampaignModule.Domain.Enum;
 using CampaignModule.Domain.Request;
@@ -12,14 +12,15 @@ namespace CampaignModule.Api.Test.Controllers;
 
 public class CampaignControllerTest
 {
-    private readonly Mock<ICampaignService> _mockService;
     private readonly CampaignController _controller;
+    private readonly Mock<ICampaignService> _mockService;
+
     public CampaignControllerTest()
     {
         _mockService = new Mock<ICampaignService>();
         _controller = new CampaignController(_mockService.Object);
     }
-    
+
     [Fact]
     public async Task GetCampaignInfo_CallEndpoint_ReturnsHttpStatusCodeAndCampaignInfo()
     {
@@ -37,18 +38,18 @@ public class CampaignControllerTest
         var tcs = new TaskCompletionSource<BaseResponse<CampaignInfoDTO>>();
         tcs.SetResult(new BaseResponse<CampaignInfoDTO>
         {
-                Result = campaignDTO,
-                IsSuccess = true,
-                Message = campaignDTO.ToString(),
-                StatusCode = (int)HttpStatusCode.OK
+            Result = campaignDTO,
+            IsSuccess = true,
+            Message = campaignDTO.ToString(),
+            StatusCode = (int)HttpStatusCode.OK
         });
-        
+
         _mockService.Setup(service => service.GetCampaign(campaignName))
             .Returns(tcs.Task);
-        
+
         //act
         var result = await _controller.GetCampaignInfo(campaignName);
-        
+
         //assert
         var objectResult = Assert.IsType<ObjectResult>(result);
         var response = Assert.IsType<BaseResponse<CampaignInfoDTO>>(objectResult.Value);
@@ -63,7 +64,7 @@ public class CampaignControllerTest
         Assert.Equal(1, response.Result!.TotalSales);
         Assert.Equal(100, response.Result!.Turnover);
     }
-    
+
     [Fact]
     public async Task CreateCampaign_CallEndpoint_ReturnsHttpStatusCodeAndCreatedCampaign()
     {
@@ -78,7 +79,7 @@ public class CampaignControllerTest
             PriceManipulationLimit = 20,
             TargetSalesCount = 10
         };
-        
+
         var campaignDTO = new CampaignDTO
         {
             Name = campaignName,
@@ -87,7 +88,7 @@ public class CampaignControllerTest
             PriceManipulationLimit = 20,
             TargetSalesCount = 10
         };
-        
+
         var tcs = new TaskCompletionSource<BaseResponse<CampaignDTO>>();
         tcs.SetResult(new BaseResponse<CampaignDTO>
         {
@@ -96,13 +97,13 @@ public class CampaignControllerTest
             Message = campaignDTO.ToString(),
             StatusCode = (int)HttpStatusCode.Created
         });
-        
+
         _mockService.Setup(service => service.CreateCampaign(It.IsAny<CampaignDTO>()))
             .Returns(tcs.Task);
-        
+
         //act
         var result = await _controller.CreateCampaign(campaignRequest);
-        
+
         //assert
         var objectResult = Assert.IsType<ObjectResult>(result);
         var response = Assert.IsType<BaseResponse<CampaignDTO>>(objectResult.Value);
@@ -117,14 +118,14 @@ public class CampaignControllerTest
         Assert.Equal(10, response.Result!.TargetSalesCount);
         Assert.Equal(campaignDTO.ToString(), response.Message);
     }
-    
+
     [Fact]
     public async Task IncreaseTime_CallEndpoint_ReturnsIncreasedCampaignTime()
     {
         //arrange
         const int time = 1;
         const string name = "C1";
-        
+
         var tcs = new TaskCompletionSource<BaseResponse<string>>();
         tcs.SetResult(new BaseResponse<string>
         {
@@ -133,13 +134,13 @@ public class CampaignControllerTest
             Message = "message",
             StatusCode = (int)HttpStatusCode.OK
         });
-        
+
         _mockService.Setup(service => service.IncreaseTime(time, name))
             .Returns(tcs.Task);
-        
+
         //act
         var result = await _controller.IncreaseTime(time, name);
-        
+
         //assert
         var objectResult = Assert.IsType<ObjectResult>(result);
         var response = Assert.IsType<BaseResponse<string>>(objectResult.Value);

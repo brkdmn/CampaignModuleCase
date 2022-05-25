@@ -1,28 +1,28 @@
-using System.Net;
-using CampaignModule.Core.Service;
+using CampaignModule.Core.Interfaces.Service;
 using CampaignModule.Domain.DTO;
 using CampaignModule.Domain.Request;
-using Microsoft.AspNetCore.Mvc;
 using Mapster;
+using Microsoft.AspNetCore.Mvc;
 
 namespace CampaignModule.Api.Controllers;
 
 [Route("api/product")]
-[ApiController]
-public class ProductController : Controller
+public class ProductController : BaseController<ProductController>
 {
-    private readonly IProductService _productService; 
+    private readonly IProductService _productService;
+
     public ProductController(IProductService productService)
     {
         _productService = productService;
     }
+
     [HttpGet("info")]
     public async Task<IActionResult> GetProduct(string productCode)
     {
         var result = await _productService.GetProduct(productCode);
         return StatusCode(result.StatusCode, result);
     }
-    
+
     [HttpPost("create")]
     public async Task<IActionResult> CreateProduct(ProductCreateRequest productCreateRequest)
     {

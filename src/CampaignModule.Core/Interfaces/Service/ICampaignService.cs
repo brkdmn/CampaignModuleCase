@@ -1,7 +1,7 @@
 using CampaignModule.Domain.DTO;
 using CampaignModule.Domain.Response;
 
-namespace CampaignModule.Core.Service;
+namespace CampaignModule.Core.Interfaces.Service;
 
 public interface ICampaignService
 {

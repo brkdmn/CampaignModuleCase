@@ -2,15 +2,15 @@ using CampaignModule.Domain.DTO;
 
 namespace CampaignModule.Domain.Entity;
 
-public class ProductEntity : BaseEntity
+public class Product : BaseEntity
 {
     public string ProductCode { get; set; } = string.Empty;
     public decimal Price { get; set; }
     public int Stock { get; set; }
 
-    public static ProductEntity Build(ProductDTO productDTO)
+    public static Product Build(ProductDTO productDTO)
     {
-        return new ProductEntity
+        return new Product
         {
             Id = Guid.NewGuid(),
             ProductCode = productDTO.ProductCode,
